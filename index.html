@@ -8,19 +8,23 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="單字卡">
   <meta name="theme-color" content="#adb996">
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Kaisei+Opti:wght@400;500&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Iansui&family=Kaisei+Opti:wght@700&family=Noto+Sans+TC:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     /* ── 色票 ── */
     :root {
       --sage: #adb996; --sage-dk: #8e9a78;
       --paper: #fbf4ea; --paper-dk: #efe5d3;
       --ink: #3a2a22; --ink-soft: #8a7a6a;
-      --mono: "Courier Prime", "Noto Serif TC", monospace;
-      --zh: "Courier Prime", "Noto Serif TC", serif;
-      --ja: "Courier Prime", "Kaisei Opti", "Noto Serif TC", serif;
+      --mono: "Courier Prime", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      --zh: "Courier Prime", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      --ja: "Courier Prime", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+      /* 依螢幕寬度調整字級 */
+      --fs-body: clamp(16px, 1.2vw + 11px, 20px);
+      --fs-small: clamp(14px, 0.8vw + 10px, 17px);
+      --fs-word: clamp(34px, 4.5vw + 16px, 64px);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--zh); background: var(--sage); color: var(--ink); min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+    body { font-family: var(--zh); font-size: var(--fs-body); background: var(--sage); color: var(--ink); min-height: 100vh; -webkit-tap-highlight-color: transparent; }
     button { font-family: inherit; color: inherit; }
     [lang="ja"] { font-family: var(--ja); }
 
@@ -28,13 +32,13 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
     /* ── Layout ── */
-    .app { max-width: 640px; margin: 0 auto; padding: 26px 18px 48px; animation: fadeIn 0.4s ease; }
+    .app { max-width: 760px; margin: 0 auto; padding: 26px 18px 48px; animation: fadeIn 0.4s ease; }
 
     /* ── Header ── */
     .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
     .header-left { display: flex; align-items: center; gap: 10px; }
     .logo { width: 32px; height: 32px; border-radius: 8px; display: block; }
-    .title { font-size: 20px; font-weight: 600; letter-spacing: 3px; }
+    .title { font-size: clamp(20px, 1.5vw + 14px, 28px); font-weight: 700; letter-spacing: 3px; }
     .badge { font-family: var(--mono); font-size: 12px; color: var(--paper); display: none; }
     .icon-btn {
       width: 36px; height: 36px; background: var(--paper); border: 1.5px solid var(--ink);
@@ -58,14 +62,14 @@
     .search-input {
       width: 100%; padding: 10px 38px 10px 12px; background: var(--paper);
       border: none; border-bottom: 2px dashed var(--ink); border-radius: 0;
-      font-family: var(--mono); font-size: 16px; color: var(--ink); outline: none;
+      font-family: var(--mono); font-size: max(16px, var(--fs-body)); color: var(--ink); outline: none;
       -webkit-appearance: none; appearance: none;
     }
     .search-input::placeholder { color: var(--ink-soft); }
     .search-input::-webkit-search-cancel-button { display: none; }
     .search-clear { position: absolute; right: 6px; top: 7px; width: 28px; height: 28px; border: none; background: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; }
     .search-results { margin-top: 6px; background: var(--paper); border: 1.5px solid var(--ink); max-height: 300px; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; z-index: 5; box-shadow: 3px 4px 0 var(--sage-dk); }
-    .result-item { display: block; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-bottom: 1px dashed var(--paper-dk); font-size: 15px; cursor: pointer; }
+    .result-item { display: block; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-bottom: 1px dashed var(--paper-dk); font-size: var(--fs-body); cursor: pointer; }
     .result-item:last-child { border-bottom: none; }
     .result-item:active { background: var(--paper-dk); }
     .result-item .r-jp  { color: var(--ink-soft); margin-left: 8px; }
@@ -74,46 +78,53 @@
 
     /* ── 資料庫 / 分類 ── */
     .sources { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .src-tag { padding: 5px 14px; font-family: var(--mono); font-size: 13px; border: 1.5px solid var(--ink); background: var(--paper); cursor: pointer; }
+    .src-tag { padding: 6px 14px; font-family: var(--mono); font-size: var(--fs-small); border: 1.5px solid var(--ink); background: var(--paper); cursor: pointer; }
     .src-tag.active { background: var(--ink); color: var(--paper); }
     .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
-    .cat-tag { padding: 4px 11px; font-size: 13px; border: none; background: var(--paper); cursor: pointer; opacity: 0.85; }
+    .cat-tag { padding: 5px 11px; font-size: var(--fs-small); border: none; background: var(--paper); cursor: pointer; opacity: 0.85; }
     .cat-tag.active { background: var(--ink); color: var(--paper); opacity: 1; }
     .section-divider { border: none; border-top: 1.5px dashed var(--paper); margin: 14px 0 16px; display: none; opacity: 0.8; }
     .section-divider.visible { display: block; }
 
     /* ── Controls ── */
     .controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .ctrl-btn { padding: 7px 14px; background: transparent; border: 1.5px solid var(--ink); font-family: var(--mono); font-size: 13px; cursor: pointer; }
+    .ctrl-btn { padding: 7px 14px; background: transparent; border: 1.5px solid var(--ink); font-family: var(--mono); font-size: var(--fs-small); cursor: pointer; }
     .ctrl-btn.active { background: var(--ink); color: var(--paper); }
 
     /* ── Flashcard ── */
-    .card-wrap { perspective: 1200px; margin-bottom: 20px; cursor: pointer; min-height: 280px; position: relative; }
-    .card-inner { min-height: 280px; position: relative; transform-style: preserve-3d; transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1); }
+    .card-wrap { perspective: 1400px; margin-bottom: 20px; cursor: pointer; min-height: clamp(300px, 42vh, 460px); position: relative; }
+    .card-inner { display: grid; min-height: clamp(300px, 42vh, 460px); position: relative; transform-style: preserve-3d; transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1); }
     .card-inner.flipped { transform: rotateY(180deg); }
     .face {
-      position: absolute; inset: 0; overflow: hidden;
+      grid-area: 1 / 1; position: relative; overflow: hidden;
       backface-visibility: hidden; -webkit-backface-visibility: hidden;
       background: var(--paper); box-shadow: 4px 5px 0 var(--sage-dk);
       padding: 44px 34px; display: flex; flex-direction: column;
       align-items: center; justify-content: center; text-align: center;
     }
-    .face-back { transform: rotateY(180deg); justify-content: flex-start; padding-top: 48px; overflow-y: auto; }
-    .face-back > .content { margin: auto 0; }
+    .face-front { transform: rotateY(0deg); }
+    /* iPad Safari 有時背面會透出來：翻到一半時直接把另一面藏起來 */
+    .face-front, .face-back { transition: visibility 0s linear 0.26s; }
+    .card-inner.flipped .face-front { visibility: hidden; }
+    .card-inner:not(.flipped) .face-back { visibility: hidden; }
+    .face-back { transform: rotateY(180deg); padding-top: 52px; }
     .stars { position: absolute; inset: 0; pointer-events: none; }
     .stars svg { position: absolute; }
     .content { position: relative; z-index: 1; }
-    .word { font-size: 32px; font-weight: 600; letter-spacing: 2px; margin-bottom: 14px; line-height: 1.45; }
-    .tap-hint { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
-    .sub-en   { font-family: var(--mono); font-size: 16px; color: #5a6a8a; margin-bottom: 10px; }
-    .sub-memo { font-size: 14px; color: var(--ink); margin: 0 auto 12px; white-space: pre-line; max-width: 460px; line-height: 1.8; text-align: left; border-top: 1px dashed var(--paper-dk); padding-top: 10px; }
-    .sub-cat  { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+    .word { font-size: var(--fs-word); font-weight: 700; letter-spacing: 1px; margin-bottom: 14px; line-height: 1.45; }
+    /* 單字本身用比較有個性的字型：中文芫荽、日文解星 */
+    .word[lang="zh-Hant"] { font-family: "Iansui", var(--zh); font-weight: 400; letter-spacing: 2px; }
+    .word[lang="ja"]      { font-family: "Kaisei Opti", var(--ja); font-weight: 700; }
+    .tap-hint { font-family: var(--mono); font-size: var(--fs-small); color: var(--ink-soft); }
+    .sub-en   { font-family: var(--mono); font-size: calc(var(--fs-body) + 2px); color: #5a6a8a; margin-bottom: 10px; }
+    .sub-memo { font-size: var(--fs-body); color: var(--ink); margin: 0 auto 12px; white-space: pre-line; max-width: 560px; line-height: 1.8; text-align: left; border-top: 1px dashed var(--paper-dk); padding-top: 10px; }
+    .sub-cat  { font-family: var(--mono); font-size: var(--fs-small); color: var(--ink-soft); }
 
     /* ── Navigation ── */
     .nav { display: flex; align-items: center; justify-content: space-between; }
-    .nav-btn { padding: 9px 16px; background: var(--paper); border: none; font-family: var(--mono); font-size: 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--sage-dk); }
+    .nav-btn { padding: 9px 16px; background: var(--paper); border: none; font-family: var(--mono); font-size: var(--fs-body); cursor: pointer; box-shadow: 2px 2px 0 var(--sage-dk); }
     .nav-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--sage-dk); }
-    .counter { font-family: var(--mono); font-size: 14px; color: var(--paper); }
+    .counter { font-family: var(--mono); font-size: var(--fs-body); color: var(--paper); }
     .sep { margin: 0 2px; }
 
     .empty { text-align: center; padding: 56px 0; background: var(--paper); box-shadow: 4px 5px 0 var(--sage-dk); color: var(--ink-soft); font-size: 15px; line-height: 2; }
@@ -203,7 +214,7 @@
       </div>
     </div>
 
-    <div class="version">v2.1</div>
+    <div class="version">v2.3</div>
 </div>
 
 <script>
