@@ -4,148 +4,130 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>單字卡</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗃</text></svg>">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-title" content="單字卡">
+  <meta name="theme-color" content="#adb996">
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Kaisei+Opti:wght@400;500&family=Noto+Serif+TC:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset ── */
+    /* ── 色票 ── */
+    :root {
+      --sage: #adb996; --sage-dk: #8e9a78;
+      --paper: #fbf4ea; --paper-dk: #efe5d3;
+      --ink: #3a2a22; --ink-soft: #8a7a6a;
+      --mono: "Courier Prime", "Noto Serif TC", monospace;
+      --zh: "Courier Prime", "Noto Serif TC", serif;
+      --ja: "Courier Prime", "Kaisei Opti", "Noto Serif TC", serif;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Noto Sans TC", sans-serif; background: #f5f1e3; min-height: 100vh; }
+    body { font-family: var(--zh); background: var(--sage); color: var(--ink); min-height: 100vh; -webkit-tap-highlight-color: transparent; }
+    button { font-family: inherit; color: inherit; }
+    [lang="ja"] { font-family: var(--ja); }
 
-    @keyframes spin    { to { transform: rotate(360deg); } }
-    @keyframes fadeIn  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
     /* ── Layout ── */
-    .app-bg {
-      min-height: 100vh;
-      background:
-        radial-gradient(ellipse at 10% 20%, rgba(183,200,161,0.28) 0%, transparent 55%),
-        radial-gradient(ellipse at 88% 78%, rgba(183,200,161,0.22) 0%, transparent 55%),
-        #f5f1e3;
-    }
-    .app { max-width: 640px; margin: 0 auto; padding: 28px 20px 56px; animation: fadeIn 0.4s ease; }
+    .app { max-width: 640px; margin: 0 auto; padding: 26px 18px 48px; animation: fadeIn 0.4s ease; }
 
     /* ── Header ── */
-    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
     .header-left { display: flex; align-items: center; gap: 10px; }
-    .logo { font-size: 22px; }
-    .title { font-family: "Noto Sans TC", sans-serif; font-size: 21px; color: #3d4a30; font-weight: 600; }
-    .badge {
-      background: #b7c8a1; color: #fffdf5;
-      font-size: 11px; padding: 2px 9px; border-radius: 9999px; font-weight: 600;
-      display: none;
-    }
+    .logo { width: 32px; height: 32px; border-radius: 8px; display: block; }
+    .title { font-size: 20px; font-weight: 600; letter-spacing: 3px; }
+    .badge { font-family: var(--mono); font-size: 12px; color: var(--paper); display: none; }
     .icon-btn {
-      width: 34px; height: 34px; background: #fffdf5;
-      border: 1px solid #b7c8a1; border-radius: 8px; color: #5b684b;
-      font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
+      width: 36px; height: 36px; background: var(--paper); border: 1.5px solid var(--ink);
+      font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 2px 2px 0 var(--sage-dk);
     }
-    .icon-btn:hover { background: #e0ecda; }
-    .icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .icon-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--sage-dk); }
+    .icon-btn:disabled { opacity: 0.5; }
     .spinning { animation: spin 0.7s linear infinite; display: inline-block; }
 
     /* ── Loading / Error ── */
-    .center-msg {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; padding: 80px 0; gap: 16px;
-      color: #8a9e74; font-size: 15px;
-    }
-    .big-spinner {
-      width: 36px; height: 36px;
-      border: 3px solid #d8e8c8; border-top-color: #7a9e6a;
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    .error-box { text-align: center; padding: 60px 20px; }
-    .error-box .icon { font-size: 36px; margin-bottom: 12px; }
-    .error-box p { font-size: 14px; color: #b04040; margin-bottom: 20px; }
-    .btn-retry {
-      padding: 9px 24px; background: #4a5f38; color: #f5f1e3;
-      border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: background 0.15s;
-    }
-    .btn-retry:hover { background: #3a4f2a; }
+    .center-msg { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 0; gap: 16px; color: var(--paper); font-family: var(--mono); font-size: 15px; }
+    .big-spinner { width: 34px; height: 34px; border: 3px solid var(--paper-dk); border-top-color: var(--ink); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .error-box { text-align: center; padding: 50px 20px; background: var(--paper); box-shadow: 3px 4px 0 var(--sage-dk); }
+    .error-box .icon { font-size: 32px; margin-bottom: 10px; }
+    .error-box p { font-size: 14px; color: #a31d1d; margin-bottom: 20px; line-height: 1.7; }
+    .btn-retry { padding: 8px 22px; background: var(--ink); color: var(--paper); border: none; font-size: 14px; cursor: pointer; }
 
-    /* ── Categories ── */
-    .categories { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
-    .cat-tag {
-      padding: 5px 15px; border-radius: 9999px; font-size: 13px;
-      border: 1.5px solid #b7c8a1; background: #e8d9b7; color: #5b684b;
-      cursor: pointer; transition: all 0.15s; font-weight: 500;
+    /* ── Search ── */
+    .search-wrap { position: relative; margin-bottom: 14px; }
+    .search-input {
+      width: 100%; padding: 10px 38px 10px 12px; background: var(--paper);
+      border: none; border-bottom: 2px dashed var(--ink); border-radius: 0;
+      font-family: var(--mono); font-size: 16px; color: var(--ink); outline: none;
+      -webkit-appearance: none; appearance: none;
     }
-    .cat-tag:hover { background: #ddd0a8; }
-    .cat-tag.active { background: #4a5f38; color: #f5f1e3; border-color: #4a5f38; }
+    .search-input::placeholder { color: var(--ink-soft); }
+    .search-input::-webkit-search-cancel-button { display: none; }
+    .search-clear { position: absolute; right: 6px; top: 7px; width: 28px; height: 28px; border: none; background: none; color: var(--ink-soft); font-size: 16px; cursor: pointer; }
+    .search-results { margin-top: 6px; background: var(--paper); border: 1.5px solid var(--ink); max-height: 300px; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; z-index: 5; box-shadow: 3px 4px 0 var(--sage-dk); }
+    .result-item { display: block; width: 100%; text-align: left; padding: 10px 14px; background: none; border: none; border-bottom: 1px dashed var(--paper-dk); font-size: 15px; cursor: pointer; }
+    .result-item:last-child { border-bottom: none; }
+    .result-item:active { background: var(--paper-dk); }
+    .result-item .r-jp  { color: var(--ink-soft); margin-left: 8px; }
+    .result-item .r-src { display: block; font-family: var(--mono); font-size: 11px; color: var(--sage-dk); margin-top: 2px; }
+    .result-note { padding: 10px 14px; font-size: 13px; color: var(--ink-soft); }
 
-    /* ── Divider ── */
-    .section-divider {
-      border: none; border-top: 1px solid #d0c9b0;
-      margin: 12px 0 16px;
-      display: none;
-    }
+    /* ── 資料庫 / 分類 ── */
+    .sources { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .src-tag { padding: 5px 14px; font-family: var(--mono); font-size: 13px; border: 1.5px solid var(--ink); background: var(--paper); cursor: pointer; }
+    .src-tag.active { background: var(--ink); color: var(--paper); }
+    .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    .cat-tag { padding: 4px 11px; font-size: 13px; border: none; background: var(--paper); cursor: pointer; opacity: 0.85; }
+    .cat-tag.active { background: var(--ink); color: var(--paper); opacity: 1; }
+    .section-divider { border: none; border-top: 1.5px dashed var(--paper); margin: 14px 0 16px; display: none; opacity: 0.8; }
     .section-divider.visible { display: block; }
 
     /* ── Controls ── */
-    .controls { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
-    .ctrl-btn {
-      padding: 7px 16px; background: #fffdf5;
-      border: 1.5px solid #b7c8a1; border-radius: 8px;
-      color: #5b684b; font-size: 13px; font-weight: 500;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .ctrl-btn:hover { background: #e8f0e0; }
-    .ctrl-btn.active { background: #4a5f38; color: #f5f1e3; border-color: #4a5f38; }
+    .controls { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .ctrl-btn { padding: 7px 14px; background: transparent; border: 1.5px solid var(--ink); font-family: var(--mono); font-size: 13px; cursor: pointer; }
+    .ctrl-btn.active { background: var(--ink); color: var(--paper); }
 
     /* ── Flashcard ── */
-    .card-wrap { perspective: 1200px; margin-bottom: 22px; cursor: pointer; min-height: 260px; position: relative; }
-    .card-inner {
-      min-height: 260px; position: relative;
-      transform-style: preserve-3d;
-      transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    .card-wrap { perspective: 1200px; margin-bottom: 20px; cursor: pointer; min-height: 280px; position: relative; }
+    .card-inner { min-height: 280px; position: relative; transform-style: preserve-3d; transition: transform 0.52s cubic-bezier(0.4, 0, 0.2, 1); }
     .card-inner.flipped { transform: rotateY(180deg); }
     .face {
-      position: absolute; inset: 0;
+      position: absolute; inset: 0; overflow: hidden;
       backface-visibility: hidden; -webkit-backface-visibility: hidden;
-      background: #fffdf5; border: 1.5px solid #b7c8a1; border-radius: 18px;
-      padding: 40px 32px; display: flex; flex-direction: column;
+      background: var(--paper); box-shadow: 4px 5px 0 var(--sage-dk);
+      padding: 44px 34px; display: flex; flex-direction: column;
       align-items: center; justify-content: center; text-align: center;
-      box-shadow: 0 4px 24px rgba(61,74,48,0.09);
     }
-    .face-back { transform: rotateY(180deg); }
-    .word {
-      font-family: "Noto Sans TC", sans-serif;
-      font-size: 34px; font-weight: 600; color: #3d4a30;
-      margin-bottom: 14px; line-height: 1.4;
-    }
-    .tap-hint { font-size: 13px; color: #a0b87a; }
-    .sub-en   { font-size: 17px; color: #6a7a58; margin-bottom: 10px; }
-    .sub-memo { font-size: 14px; color: #7a8a65; margin-bottom: 10px; white-space: pre-line; max-width: 460px; line-height: 1.7; }
-    .sub-cat  { font-size: 12px; color: #a0b87a; margin-top: 4px; }
+    .face-back { transform: rotateY(180deg); justify-content: flex-start; padding-top: 48px; overflow-y: auto; }
+    .face-back > .content { margin: auto 0; }
+    .stars { position: absolute; inset: 0; pointer-events: none; }
+    .stars svg { position: absolute; }
+    .content { position: relative; z-index: 1; }
+    .word { font-size: 32px; font-weight: 600; letter-spacing: 2px; margin-bottom: 14px; line-height: 1.45; }
+    .tap-hint { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+    .sub-en   { font-family: var(--mono); font-size: 16px; color: #5a6a8a; margin-bottom: 10px; }
+    .sub-memo { font-size: 14px; color: var(--ink); margin: 0 auto 12px; white-space: pre-line; max-width: 460px; line-height: 1.8; text-align: left; border-top: 1px dashed var(--paper-dk); padding-top: 10px; }
+    .sub-cat  { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
 
     /* ── Navigation ── */
     .nav { display: flex; align-items: center; justify-content: space-between; }
-    .nav-btn {
-      padding: 9px 20px; background: #e8d9b7; color: #5b684b;
-      border: none; border-radius: 8px; font-size: 14px; font-weight: 500;
-      cursor: pointer; transition: background 0.15s;
-    }
-    .nav-btn:hover { background: #d8c8a0; }
-    .counter { font-size: 14px; color: #8a9e74; font-weight: 500; }
-    .sep { color: #c8d8b5; margin: 0 2px; }
+    .nav-btn { padding: 9px 16px; background: var(--paper); border: none; font-family: var(--mono); font-size: 14px; cursor: pointer; box-shadow: 2px 2px 0 var(--sage-dk); }
+    .nav-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--sage-dk); }
+    .counter { font-family: var(--mono); font-size: 14px; color: var(--paper); }
+    .sep { margin: 0 2px; }
 
-    .empty { text-align: center; padding: 64px 0; color: #8a9e74; font-size: 15px; line-height: 2; }
-
-    /* ── Hidden helper ── */
+    .empty { text-align: center; padding: 56px 0; background: var(--paper); box-shadow: 4px 5px 0 var(--sage-dk); color: var(--ink-soft); font-size: 15px; line-height: 2; }
+    .version { text-align: center; font-family: var(--mono); font-size: 11px; color: var(--paper); opacity: 0.8; margin-top: 36px; }
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
-<div class="app-bg">
-  <div class="app">
+<div class="app">
 
     <!-- Header -->
     <header class="header">
       <div class="header-left">
-        <span class="logo">🍵</span>
+        <img class="logo" src="icons/apple-touch-icon.png" alt="">
         <h1 class="title">單字卡</h1>
         <span class="badge" id="badge"></span>
       </div>
@@ -169,47 +151,59 @@
 
     <!-- Main (hidden until loaded) -->
     <div class="hidden" id="main">
+      <div class="search-wrap">
+        <input class="search-input" id="searchInput" type="search" placeholder="搜尋單字（中／日／英／memo）" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="search-clear hidden" id="searchClear" aria-label="清除">✕</button>
+        <div class="search-results hidden" id="searchResults"></div>
+      </div>
+      <div class="sources hidden" id="sources"></div>
       <div class="categories" id="categories"></div>
       <hr class="section-divider" id="divider">
       <div class="controls">
         <button class="ctrl-btn" id="langBtn">中 → 日</button>
-        <button class="ctrl-btn" id="shuffleBtn">🔀 隨機</button>
-        <button class="ctrl-btn" id="randomBtn">🎲 骰子</button>
+        <button class="ctrl-btn" id="shuffleBtn">隨機排序</button>
+        <button class="ctrl-btn" id="randomBtn">抽一張</button>
       </div>
 
       <!-- Card -->
       <div class="card-wrap" id="cardWrap">
         <div class="card-inner" id="cardInner">
           <div class="face face-front" id="faceFront">
-            <div class="word" id="frontWord"></div>
-            <div class="tap-hint">點擊查看答案</div>
+            <div class="stars" id="starsFront"></div>
+            <div class="content">
+              <div class="word" id="frontWord"></div>
+              <div class="tap-hint">[ 點一下翻面 ]</div>
+            </div>
           </div>
           <div class="face face-back" id="faceBack">
-            <div class="word" id="backWord"></div>
-            <div class="sub-en"   id="backEn"></div>
-            <div class="sub-memo" id="backMemo"></div>
-            <div class="sub-cat"  id="backCat"></div>
+            <div class="stars" id="starsBack"></div>
+            <div class="content">
+              <div class="word" id="backWord"></div>
+              <div class="sub-en"   id="backEn"></div>
+              <div class="sub-memo" id="backMemo"></div>
+              <div class="sub-cat"  id="backCat"></div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Empty state -->
       <div class="empty hidden" id="emptyMsg">
-        <div style="font-size:40px;margin-bottom:12px">🌿</div>
-        沒有符合所選分類的單字卡
+        <div style="font-size:34px;color:#cfb000;margin-bottom:6px">★</div>
+        沒有符合條件的單字卡
       </div>
 
       <!-- Navigation -->
       <div class="nav" id="nav">
-        <button class="nav-btn" id="prevBtn">← 上一個</button>
+        <button class="nav-btn" id="prevBtn">← 上一張</button>
         <span class="counter">
           <span id="currentNum">1</span><span class="sep"> / </span><span id="totalNum">0</span>
         </span>
-        <button class="nav-btn" id="nextBtn">下一個 →</button>
+        <button class="nav-btn" id="nextBtn">下一張 →</button>
       </div>
     </div>
 
-  </div>
+    <div class="version">v2.1</div>
 </div>
 
 <script>
@@ -226,6 +220,9 @@
   let isFlipped        = false;
   let startLang        = "zh-tw";  // 正面語言
   let isShuffled       = false;
+  let allSources       = [];
+  let selectedSource   = "all";    // 資料庫篩選
+  let query            = "";       // 搜尋字串
 
   // ── DOM ──────────────────────────────────────────────────────
   const $ = (id) => document.getElementById(id);
@@ -248,6 +245,10 @@
   const nav         = $("nav");
   const langBtn     = $("langBtn");
   const shuffleBtn  = $("shuffleBtn");
+  const sourcesEl   = $("sources");
+  const searchInput = $("searchInput");
+  const searchClear = $("searchClear");
+  const searchRes   = $("searchResults");
 
   // ── 工具 ─────────────────────────────────────────────────────
   function shuffle(arr) {
@@ -274,7 +275,7 @@
       const res  = await fetch(WORKER_URL);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "載入失敗");
-      initCards(data.cards);
+      initCards(data.cards, data.sources || []);
     } catch (e) {
       loadingMsg.classList.add("hidden");
       errorBox.classList.remove("hidden");
@@ -285,27 +286,47 @@
     }
   }
 
-  function initCards(cards) {
-    allCards = cards;
+  function initCards(cards, sources) {
+    allCards   = cards;
+    allSources = sources.length ? sources : [...new Set(cards.map((c) => c.source).filter(Boolean))];
+    if (selectedSource !== "all" && !allSources.includes(selectedSource)) selectedSource = "all";
 
-    // 收集所有分類
-    const catSet = new Set();
-    cards.forEach((c) => c.categories.forEach((cat) => catSet.add(cat)));
-    allCategories = [...catSet];
-    selectedCats  = [];
-
-    // 渲染分類標籤
-    renderCategories();
+    renderSources();
     applyFilter();
 
     // 顯示主畫面
     loadingMsg.classList.add("hidden");
     main.classList.remove("hidden");
-    badge.textContent = `${allCards.length} 字`;
+    badge.textContent = `${allCards.length} words`;
     badge.style.display = "inline-block";
   }
 
+  // ── 資料庫 ───────────────────────────────────────────────────
+  function renderSources() {
+    sourcesEl.innerHTML = "";
+    sourcesEl.classList.toggle("hidden", allSources.length < 2);
+    if (allSources.length < 2) return;
+    ["all", ...allSources].forEach((src) => {
+      const btn = document.createElement("button");
+      btn.className = "src-tag" + (selectedSource === src ? " active" : "");
+      btn.textContent = src === "all" ? "全部" : src;
+      btn.onclick = () => { selectedSource = src; renderSources(); applyFilter(); };
+      sourcesEl.appendChild(btn);
+    });
+  }
+
+  function cardsInSource() {
+    return selectedSource === "all" ? allCards : allCards.filter((c) => c.source === selectedSource);
+  }
+
   // ── 分類 ─────────────────────────────────────────────────────
+  function collectCategories() {
+    const catSet = new Set();
+    cardsInSource().forEach((c) => c.categories.forEach((cat) => catSet.add(cat)));
+    allCategories = [...catSet];
+    selectedCats  = selectedCats.filter((c) => allCategories.includes(c));
+  }
+
   function renderCategories() {
     categoriesEl.innerHTML = "";
     const divider = $("divider");
@@ -328,14 +349,142 @@
     applyFilter();
   }
 
+  function matchesQuery(c, q) {
+    return [c["zh-tw"], c.jp, c.en, c.memo].some((v) => (v || "").toLowerCase().includes(q));
+  }
+
   function applyFilter() {
-    let result = selectedCats.length === 0
-      ? [...allCards]
-      : allCards.filter((c) => c.categories.some((cat) => selectedCats.includes(cat)));
-    filteredCards = isShuffled ? shuffle(result) : result;
+    collectCategories();
+    renderCategories();
+
+    let result = cardsInSource();
+    if (selectedCats.length > 0)
+      result = result.filter((c) => c.categories.some((cat) => selectedCats.includes(cat)));
+    const q = query.trim().toLowerCase();
+    if (q) result = result.filter((c) => matchesQuery(c, q));
+
+    filteredCards = isShuffled ? shuffle(result) : [...result];
     currentIndex  = 0;
     isFlipped     = false;
     renderCard();
+    renderResults();
+  }
+
+  // ── 搜尋 ─────────────────────────────────────────────────────
+  const MAX_RESULTS = 30;
+
+  function renderResults() {
+    const q = query.trim();
+    searchClear.classList.toggle("hidden", !q);
+    if (!q || document.activeElement !== searchInput) { searchRes.classList.add("hidden"); return; }
+
+    searchRes.innerHTML = "";
+    searchRes.classList.remove("hidden");
+
+    if (filteredCards.length === 0) {
+      searchRes.innerHTML = '<div class="result-note">目前篩選範圍裡沒有符合的單字</div>';
+      return;
+    }
+    filteredCards.slice(0, MAX_RESULTS).forEach((c, i) => {
+      const btn = document.createElement("button");
+      btn.className = "result-item";
+      const zh  = document.createElement("span"); zh.textContent  = c["zh-tw"];
+      const jp  = document.createElement("span"); jp.className = "r-jp"; jp.lang = "ja"; jp.textContent  = c.jp;
+      const src = document.createElement("span"); src.className = "r-src"; src.textContent = [c.source, c.categories.join("、")].filter(Boolean).join(" · ");
+      btn.append(zh, jp, src);
+      // mousedown 先觸發，避免輸入框失焦時清單先被關掉
+      btn.onmousedown = (e) => e.preventDefault();
+      btn.onclick = () => {
+        currentIndex = i; isFlipped = false; renderCard();
+        searchInput.blur();
+        searchRes.classList.add("hidden");
+      };
+      searchRes.appendChild(btn);
+    });
+    if (filteredCards.length > MAX_RESULTS) {
+      const note = document.createElement("div");
+      note.className = "result-note";
+      note.textContent = `另有 ${filteredCards.length - MAX_RESULTS} 筆，可繼續輸入縮小範圍，或直接用卡片瀏覽`;
+      searchRes.appendChild(note);
+    }
+  }
+
+  searchInput.addEventListener("input", () => { query = searchInput.value; applyFilter(); });
+  searchInput.addEventListener("focus", renderResults);
+  searchInput.addEventListener("blur",  () => setTimeout(() => searchRes.classList.add("hidden"), 150));
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter")  { searchInput.blur(); }
+    if (e.key === "Escape") { query = ""; searchInput.value = ""; searchInput.blur(); applyFilter(); }
+  });
+  searchClear.onclick = () => { query = ""; searchInput.value = ""; applyFilter(); searchInput.focus(); };
+
+  // ── 星星裝飾（同一個字每次都長一樣）──────────────────────
+  const STAR_COLORS = ["#f09b86", "#6f80d4", "#cfb000", "#a31d1d", "#9fb38a", "#c3cbe6", "#a993ad", "#f4b3a6"];
+  // 星星可以放的位置（避開中間文字區），單位 %
+  const STAR_SLOTS = [
+    [4, 5], [22, 3], [46, 4], [70, 3], [88, 6],
+    [3, 30], [91, 32], [2, 62], [92, 60],
+    [6, 84], [26, 88], [52, 87], [74, 86], [90, 84]
+  ];
+  const STAR_PATH = "M50 6 L61.8 36.2 L94 38.2 L69 59 L77.3 91 L50 73.5 L22.7 91 L31 59 L6 38.2 L38.2 36.2 Z";
+
+  function seedFrom(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function rng(seed) {
+    return () => {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  let starUid = 0;
+  function starSVG(rand) {
+    const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+    const c1 = pick(STAR_COLORS);
+    let c2 = pick(STAR_COLORS); if (c2 === c1) c2 = STAR_COLORS[(STAR_COLORS.indexOf(c1) + 3) % STAR_COLORS.length];
+    const id = "st" + (starUid++);
+    const kind = rand();
+    let defs = "", fill = c1;
+    if (kind < 0.45) {                       // 單色
+      fill = c1;
+    } else if (kind < 0.65) {                // 漸層
+      defs = `<linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient>`;
+      fill = `url(#${id})`;
+    } else if (kind < 0.83) {                // 格子
+      defs = `<pattern id="${id}" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="${c1}"/><path d="M0 7H14M7 0V14" stroke="#fbf4ea" stroke-width="2.4" opacity=".75"/></pattern>`;
+      fill = `url(#${id})`;
+    } else {                                 // 點點
+      defs = `<pattern id="${id}" width="13" height="13" patternUnits="userSpaceOnUse"><rect width="13" height="13" fill="${c1}"/><circle cx="6.5" cy="6.5" r="2.6" fill="#fbf4ea" opacity=".85"/></pattern>`;
+      fill = `url(#${id})`;
+    }
+    return { defs, fill, stroke: kind < 0.45 ? c1 : (defs ? c1 : c1) };
+  }
+  // 背面文字多，星星只放上緣和四個角
+  const BACK_SLOTS = [[4, 4], [22, 3], [46, 3], [70, 3], [92, 5], [3, 95], [95, 95]];
+
+  function renderStars(el, key, slotList = STAR_SLOTS, minN = 4) {
+    const rand = rng(seedFrom(key));
+    const slots = shuffleWith([...slotList], rand);
+    const n = Math.min(slots.length, minN + Math.floor(rand() * 4));   // 4–7 顆
+    let html = "";
+    for (let i = 0; i < n; i++) {
+      const [x, y] = slots[i];
+      const big = slotList === STAR_SLOTS && rand() < 0.3;
+      const size = big ? 30 + rand() * 18 : 12 + rand() * 14;
+      const rot = Math.round(rand() * 70 - 35);
+      const s = starSVG(rand);
+      html += `<svg viewBox="0 0 100 100" style="left:calc(${x}% - ${size / 2}px);top:calc(${y}% - ${size / 2}px);width:${size}px;height:${size}px;transform:rotate(${rot}deg)">`
+           +  `<defs>${s.defs}</defs><path d="${STAR_PATH}" fill="${s.fill}" stroke="${s.stroke}" stroke-width="6" stroke-linejoin="round"/></svg>`;
+    }
+    el.innerHTML = html;
+  }
+  function shuffleWith(a, rand) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
   }
 
   // ── 渲染卡片 ──────────────────────────────────────────────────
@@ -349,14 +498,24 @@
     const card       = filteredCards[currentIndex];
     const answerLang = startLang === "zh-tw" ? "jp" : "zh-tw";
 
+    // 星星
+    const key = (card.source || "") + "|" + card["zh-tw"] + "|" + card.jp;
+    if (cardWrap.dataset.key !== key) {
+      cardWrap.dataset.key = key;
+      renderStars($("starsFront"), key);
+      renderStars($("starsBack"), key + "*", BACK_SLOTS, 3);
+    }
+
     // 正面
     frontWord.textContent = card[startLang];
+    frontWord.lang = startLang === "jp" ? "ja" : "zh-Hant";
+    backWord.lang  = answerLang === "jp" ? "ja" : "zh-Hant";
 
     // 背面
     backWord.textContent  = card[answerLang];
-    backEn.textContent    = card.en   ? "🔤 " + card.en   : "";
-    backMemo.textContent  = card.memo ? "📝 " + card.memo : "";
-    backCat.textContent   = "🏷 " + card.category;
+    backEn.textContent    = card.en   || "";
+    backMemo.textContent  = card.memo || "";
+    backCat.textContent   = card.categories.join(" / ") + (card.source ? "  ·  " + card.source : "");
     backEn.classList.toggle("hidden",   !card.en);
     backMemo.classList.toggle("hidden", !card.memo);
 
@@ -392,7 +551,7 @@
 
   shuffleBtn.onclick = () => {
     isShuffled = !isShuffled;
-    shuffleBtn.textContent = isShuffled ? "🔀 隨機中" : "🔀 隨機";
+    shuffleBtn.textContent = isShuffled ? "隨機中" : "隨機排序";
     shuffleBtn.classList.toggle("active", isShuffled);
     applyFilter();
   };
@@ -402,6 +561,7 @@
 
   // ── 鍵盤快捷鍵 ───────────────────────────────────────────────
   document.addEventListener("keydown", (e) => {
+    if (e.target === searchInput) return;
     if (filteredCards.length === 0) return;
     if (e.key === " " || e.key === "Spacebar") {
       e.preventDefault();
