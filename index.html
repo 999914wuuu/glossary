@@ -80,7 +80,32 @@
     .sources { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .src-tag { padding: 6px 14px; font-family: var(--mono); font-size: var(--fs-small); border: 1.5px solid var(--ink); background: var(--paper); cursor: pointer; }
     .src-tag.active { background: var(--ink); color: var(--paper); }
-    .categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+    /* ── 分類面板（看板式）── */
+    .cat-toggle {
+      display: flex; align-items: center; justify-content: space-between; width: 100%;
+      padding: 9px 14px; background: var(--paper); border: 1.5px solid var(--ink);
+      font-size: var(--fs-small); cursor: pointer; text-align: left;
+    }
+    .cat-toggle .arrow { font-family: var(--mono); transition: transform 0.2s; }
+    .cat-toggle.open .arrow { transform: rotate(180deg); }
+    .cat-toggle .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cat-panel { margin-top: 8px; }
+    .board {
+      display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px;
+      scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+    }
+    .col {
+      flex: 0 0 clamp(150px, 22vw, 190px); scroll-snap-align: start;
+      background: rgba(251, 244, 234, 0.45); padding: 8px; align-self: flex-start;
+    }
+    .col-head {
+      display: flex; justify-content: space-between; align-items: center; width: 100%;
+      background: none; border: none; padding: 2px 2px 8px; cursor: pointer;
+      font-size: var(--fs-small); font-weight: 700; text-align: left;
+    }
+    .col-head .n { font-family: var(--mono); font-weight: 400; font-size: 12px; color: var(--ink); opacity: 0.6; }
+    .col .cat-tag { display: block; width: 100%; text-align: left; margin-bottom: 5px; }
+    .panel-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
     .cat-tag { padding: 5px 11px; font-size: var(--fs-small); border: none; background: var(--paper); cursor: pointer; opacity: 0.85; }
     .cat-tag.active { background: var(--ink); color: var(--paper); opacity: 1; }
     .section-divider { border: none; border-top: 1.5px dashed var(--paper); margin: 14px 0 16px; display: none; opacity: 0.8; }
@@ -168,7 +193,14 @@
         <div class="search-results hidden" id="searchResults"></div>
       </div>
       <div class="sources hidden" id="sources"></div>
-      <div class="categories" id="categories"></div>
+      <button class="cat-toggle hidden" id="catToggle"><span class="label" id="catLabel">分類：全部</span><span class="arrow">▾</span></button>
+      <div class="cat-panel hidden" id="catPanel">
+        <div class="board" id="categories"></div>
+        <div class="panel-actions">
+          <button class="ctrl-btn" id="catClear">清除</button>
+          <button class="ctrl-btn active" id="catDone">完成</button>
+        </div>
+      </div>
       <hr class="section-divider" id="divider">
       <div class="controls">
         <button class="ctrl-btn" id="langBtn">中 → 日</button>
@@ -214,7 +246,7 @@
       </div>
     </div>
 
-    <div class="version">v2.3</div>
+    <div class="version">v2.4</div>
 </div>
 
 <script>
@@ -338,17 +370,86 @@
     selectedCats  = selectedCats.filter((c) => allCategories.includes(c));
   }
 
+  // ── 分類看板：依會議／部門分欄，同一個分類可以出現在好幾欄 ──
+  //   名稱結尾是「｜*」的代表「這個開頭的全部」，例如 サステナ｜*
+  //   沒被放進任何一欄的分類會自動出現在「其他」
+  const BOARD = [
+    ["投資",           ["株式・相場", "委託投資・投資信託", "経済", "経済・市場", "指數・経済指標", "不動産", "リスク"]],
+    ["財會・精算",     ["会計・財務諸表・精算", "税務会計", "IFRS17", "IFRS18", "備金", "保険料"]],
+    ["經營會議・董事會", ["経営", "BOD", "MVV", "リスク", "経済・市場"]],
+    ["商品・核保・理賠", ["保険・損サ", "再保険", "種目", "車險", "理賠", "保険料"]],
+    ["法遵・稽核",     ["法務コンプラ", "内部監査", "苦情/顧客公平取扱", "リスク"]],
+    ["人事",           ["人事", "法務コンプラ", "内部監査", "苦情/顧客公平取扱"]],
+    ["永續",           ["サステナ｜*", "不動産｜建築関連法規制"]],
+    ["IT・數位",       ["IT", "マーケティング"]],
+    ["共用",           ["一般用語", "コロケーション", "固有｜*", "機構", "旅行", "土木"]],
+  ];
+
+  function buildColumns() {
+    const used = new Set();
+    const cols = BOARD.map(([title, rules]) => {
+      const items = [];
+      items.short = {};   // 用「開頭*」找到的分類，欄內只顯示｜後面的部分
+      rules.forEach((r) => {
+        const hits = r.endsWith("*")
+          ? allCategories.filter((c) => c.startsWith(r.slice(0, -1)))
+          : allCategories.filter((c) => c === r);
+        hits.forEach((c) => {
+          if (!items.includes(c)) items.push(c);
+          if (r.endsWith("*")) items.short[c] = c.slice(r.length - 1);
+          used.add(c);
+        });
+      });
+      return [title, items];
+    });
+    const rest = allCategories.filter((c) => !used.has(c));
+    if (rest.length) cols.push(["其他", rest]);
+    return cols.filter(([, items]) => items.length);
+  }
+
   function renderCategories() {
+    const keepScroll = categoriesEl.scrollLeft;
+    requestAnimationFrame(() => { categoriesEl.scrollLeft = keepScroll; });
     categoriesEl.innerHTML = "";
     const divider = $("divider");
-    if (allCategories.length === 0) { divider.classList.remove("visible"); return; }
-    divider.classList.add("visible");
-    allCategories.forEach((cat) => {
-      const btn = document.createElement("button");
-      btn.className = "cat-tag" + (selectedCats.includes(cat) ? " active" : "");
-      btn.textContent = cat;
-      btn.onclick = () => toggleCategory(cat);
-      categoriesEl.appendChild(btn);
+    const has = allCategories.length > 0;
+    divider.classList.toggle("visible", has);
+    $("catToggle").classList.toggle("hidden", !has);
+    if (!has) { $("catPanel").classList.add("hidden"); return; }
+
+    // 收合時顯示的文字
+    const n = selectedCats.length;
+    $("catLabel").textContent = n === 0 ? "分類：全部"
+      : n === 1 ? `分類：${selectedCats[0]}`
+      : `分類：${selectedCats[0]} 等 ${n} 個`;
+
+    buildColumns().forEach(([title, items]) => {
+      const col = document.createElement("div");
+      col.className = "col";
+      const allOn = items.every((c) => selectedCats.includes(c));
+      const on = items.filter((c) => selectedCats.includes(c)).length;
+
+      const head = document.createElement("button");
+      head.className = "col-head";
+      head.innerHTML = `<span></span><span class="n">${on ? on + "/" : ""}${items.length}</span>`;
+      head.firstChild.textContent = title;
+      // 點欄名：整欄全選／全取消
+      head.onclick = () => {
+        selectedCats = allOn
+          ? selectedCats.filter((c) => !items.includes(c))
+          : [...new Set([...selectedCats, ...items])];
+        applyFilter();
+      };
+      col.appendChild(head);
+
+      items.forEach((cat) => {
+        const btn = document.createElement("button");
+        btn.className = "cat-tag" + (selectedCats.includes(cat) ? " active" : "");
+        btn.textContent = (items.short && items.short[cat]) || cat;
+        btn.onclick = () => toggleCategory(cat);
+        col.appendChild(btn);
+      });
+      categoriesEl.appendChild(col);
     });
   }
 
@@ -356,9 +457,16 @@
     selectedCats = selectedCats.includes(cat)
       ? selectedCats.filter((c) => c !== cat)
       : [...selectedCats, cat];
-    renderCategories();
     applyFilter();
   }
+
+  function setPanel(open) {
+    $("catPanel").classList.toggle("hidden", !open);
+    $("catToggle").classList.toggle("open", open);
+  }
+  $("catToggle").onclick = () => setPanel($("catPanel").classList.contains("hidden"));
+  $("catDone").onclick   = () => setPanel(false);
+  $("catClear").onclick  = () => { selectedCats = []; applyFilter(); };
 
   function matchesQuery(c, q) {
     return [c["zh-tw"], c.jp, c.en, c.memo].some((v) => (v || "").toLowerCase().includes(q));
